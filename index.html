@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+<title>道歉进度 · 给 Seestone</title>
+<style>
+  :root {
+    --sage: #707574;
+    --paper: #f1f1e9;
+    --gold: #f5d76e;
+    --coral: #ff8c69;
+    --ink: #3a3d3c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background:
+      radial-gradient(120vmin 90vmin at 85% -10%, rgba(245, 215, 110, 0.16), transparent 60%),
+      radial-gradient(100vmin 80vmin at -10% 110%, rgba(255, 140, 105, 0.14), transparent 60%),
+      #707574;
+    color: var(--paper);
+    font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+    opacity: 0;
+    transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body.loaded { opacity: 1; }
+
+  #hearts {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .stage {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .kicker {
+    font-size: 13px;
+    letter-spacing: 0.5em;
+    color: rgba(241, 241, 233, 0.55);
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-size: clamp(30px, 7vw, 52px);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+  h1 .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.6em);
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  h1 .char.show { opacity: 1; transform: translateY(0); }
+
+  .sub {
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    color: rgba(241, 241, 233, 0.6);
+    margin-bottom: 44px;
+    opacity: 0;
+    transition: opacity 900ms ease 900ms;
+  }
+  .sub.show { opacity: 1; }
+
+  .ring-wrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin-bottom: 30px;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .ring-wrap svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .ring-bg {
+    fill: none;
+    stroke: rgba(241, 241, 233, 0.18);
+    stroke-width: 6;
+  }
+  .ring-fg {
+    fill: none;
+    stroke: url(#grad);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 565.5;
+    stroke-dashoffset: 565.5;
+    transition: stroke-dashoffset 120ms linear;
+  }
+  .ring-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .pct {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .ring-hint {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: rgba(241, 241, 233, 0.55);
+    transition: opacity 300ms ease;
+  }
+  .ring-wrap.charging .ring-hint { opacity: 0.9; color: var(--gold); }
+
+  .lines {
+    min-height: 8.6em;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    margin-bottom: 34px;
+  }
+  .aline {
+    font-size: clamp(15px, 2.4vw, 17px);
+    letter-spacing: 0.12em;
+    line-height: 1.9;
+    color: rgba(241, 241, 233, 0.88);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .aline.show { opacity: 1; transform: translateY(0); }
+  .aline.hl { color: var(--gold); font-weight: 600; }
+
+  .final {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 900ms ease, transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  .final.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .final .btn {
+    font-family: inherit;
+    font-size: 16px;
+    letter-spacing: 0.24em;
+    padding: 14px 44px;
+    cursor: pointer;
+    border: none;
+    color: var(--ink);
+    background: linear-gradient(120deg, var(--gold), var(--coral));
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms ease;
+    box-shadow: 0 10px 30px -10px rgba(255, 140, 105, 0.6);
+  }
+  .final .btn:hover { transform: translateY(-2px); }
+  .final .note {
+    margin-top: 14px;
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    color: rgba(241, 241, 233, 0.5);
+  }
+
+  .footer-link {
+    position: fixed;
+    bottom: 20px;
+    right: 24px;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: rgba(241, 241, 233, 0.45);
+    text-decoration: none;
+    z-index: 3;
+  }
+  .footer-link:hover { color: rgba(241, 241, 233, 0.85); }
+
+  .done-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 34px;
+    transform: translate(-50%, 20px);
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    color: var(--paper);
+    background: rgba(58, 61, 60, 0.75);
+    padding: 12px 26px;
+    opacity: 0;
+    transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 6;
+  }
+  .done-toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<canvas id="hearts"></canvas>
+
+<div class="stage">
+  <div class="kicker">第二次道歉 · 升级版</div>
+  <h1 id="title">道歉进度</h1>
+  <div class="sub" id="sub">上次的信不够隆重，这次把诚意充给你看</div>
+
+  <div class="ring-wrap" id="ring">
+    <svg viewBox="0 0 200 200">
+      <defs>
+        <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f5d76e"/>
+          <stop offset="100%" stop-color="#ff8c69"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-bg" cx="100" cy="100" r="90"/>
+      <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="90"/>
+    </svg>
+    <div class="ring-label">
+      <div class="pct" id="pct">0%</div>
+      <div class="ring-hint" id="hint">长 按 充 诚 意</div>
+    </div>
+  </div>
+
+  <div class="lines">
+    <div class="aline" data-at="20">第一成诚意：那天让你难过，是我不对。</div>
+    <div class="aline" data-at="40">第二成诚意：你的眼泪比我的面子重要。</div>
+    <div class="aline" data-at="60">第三成诚意：以后说话之前，先想想你。</div>
+    <div class="aline" data-at="80">第四成诚意：你复读的辛苦，我都看在眼里。</div>
+    <div class="aline hl" data-at="100">最后一成：我喜欢你，这件事不打折。</div>
+  </div>
+
+  <div class="final" id="final">
+    <button class="btn" id="accept">原谅你</button>
+    <div class="note">这次只有一个按钮 —— 因为答案只有一个</div>
+  </div>
+</div>
+
+<div class="done-toast" id="toast">已收到原谅 · 有效期：一辈子</div>
+
+<a class="footer-link" href="letter.html">上一封信 →</a>
+<a class="footer-link" style="right:auto;left:50%;transform:translateX(-50%);" href="countdown.html">✦ 回来那天 →</a>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('loaded');
+    const h1 = document.getElementById('title');
+    h1.innerHTML = [...h1.textContent].map(c => `<span class="char">${c}</span>`).join('');
+    const chars = h1.querySelectorAll('.char');
+    chars.forEach((c, i) => setTimeout(() => c.classList.add('show'), 300 + i * 140));
+    setTimeout(() => document.getElementById('sub').classList.add('show'), 300 + chars.length * 140 + 200);
+  });
+
+  const ring = document.getElementById('ring');
+  const ringFg = document.getElementById('ringFg');
+  const pct = document.getElementById('pct');
+  const hint = document.getElementById('hint');
+  const finalBox = document.getElementById('final');
+  const alines = [...document.querySelectorAll('.aline')];
+  const CIRC = 565.5;
+
+  let progress = 0;
+  let holding = false;
+  let done = false;
+  let raf = null;
+
+  function render() {
+    pct.textContent = Math.round(progress) + '%';
+    ringFg.style.strokeDashoffset = CIRC * (1 - progress / 100);
+    alines.forEach(el => {
+      if (progress >= +el.dataset.at) el.classList.add('show');
+    });
+    if (progress >= 100 && !done) {
+      done = true;
+      hint.textContent = '诚 意 已 充 满';
+      finalBox.classList.add('show');
+      burst(36);
+    }
+  }
+
+  function tick() {
+    if (holding && progress < 100) {
+      progress = Math.min(100, progress + 0.55);
+    } else if (!holding && progress < 100 && progress > 0) {
+      progress = Math.max(0, progress - 0.18);
+    }
+    render();
+    if ((holding && progress < 100) || (!holding && progress > 0 && progress < 100)) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = null;
+    }
+  }
+  function start(e) {
+    if (done) return;
+    e.preventDefault();
+    holding = true;
+    ring.classList.add('charging');
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function stop() {
+    holding = false;
+    ring.classList.remove('charging');
+    if (progress > 0 && progress < 100 && !raf) raf = requestAnimationFrame(tick);
+  }
+  ring.addEventListener('pointerdown', start);
+  addEventListener('pointerup', stop);
+  addEventListener('pointercancel', stop);
+
+  const canvas = document.getElementById('hearts');
+  const ctx = canvas.getContext('2d');
+  let hearts = [];
+
+  function resize() {
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  function drawHeart(x, y, s, rot, color, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.scale(s, s);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 3);
+    ctx.bezierCurveTo(-5, -3, -10, 2, 0, 10);
+    ctx.bezierCurveTo(10, 2, 5, -3, 0, 3);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function burst(n) {
+    const cx = innerWidth / 2, cy = innerHeight * 0.42;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 1.5 + Math.random() * 3.5;
+      hearts.push({
+        x: cx, y: cy,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp - 1.5,
+        s: 0.7 + Math.random() * 1.1,
+        rot: (Math.random() - 0.5) * 0.8,
+        vr: (Math.random() - 0.5) * 0.06,
+        life: 1,
+        decay: 0.006 + Math.random() * 0.008,
+        color: Math.random() < 0.5 ? '#f5d76e' : '#ff8c69'
+      });
+    }
+  }
+
+  (function loop() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    hearts = hearts.filter(h => h.life > 0);
+    for (const h of hearts) {
+      h.x += h.vx; h.y += h.vy;
+      h.vy += 0.03;
+      h.vx *= 0.99;
+      h.rot += h.vr;
+      h.life -= h.decay;
+      drawHeart(h.x, h.y, h.s, h.rot, h.color, Math.max(0, h.life));
+    }
+    requestAnimationFrame(loop);
+  })();
+
+  document.getElementById('accept').addEventListener('click', () => {
+    burst(60);
+    setTimeout(() => burst(40), 250);
+    setTimeout(() => burst(40), 500);
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3200);
+  });
+</script>
+</body>
+</html>
