@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>给 Seestone 的一封道歉信</title>
+<style>
+  :root {
+    --cream: #ede6d3;
+    --cream-deep: #e4dcc6;
+    --ink: #4F4F4C;
+    --ink-soft: rgba(79, 79, 76, 0.55);
+    --tan: #d5c2ad;
+    --sun: rgba(255, 248, 224, 0.9);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+    opacity: 0;
+    transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    -webkit-font-smoothing: antialiased;
+  }
+  body.loaded { opacity: 1; }
+
+  .light-field {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .sun-glow {
+    position: absolute;
+    top: -22vmin;
+    right: -14vmin;
+    width: 70vmin;
+    height: 70vmin;
+    background: radial-gradient(circle, var(--sun) 0%, rgba(255, 244, 208, 0.35) 42%, rgba(255, 244, 208, 0) 70%);
+    animation: sunBreathe 9s ease-in-out infinite;
+  }
+  @keyframes sunBreathe {
+    0%, 100% { opacity: 0.75; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+  }
+  .blind {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 14vh;
+    transform: rotate(-7deg) scale(1.3);
+    background: linear-gradient(to bottom,
+      rgba(242, 244, 227, 0) 0%,
+      rgba(228, 233, 197, 0.28) 45%,
+      rgba(213, 194, 173, 0.34) 100%);
+    animation: blindShift 13s ease-in-out infinite;
+  }
+  .blind:nth-child(2) { top: 4vh;  animation-delay: 0s; }
+  .blind:nth-child(3) { top: 22vh; animation-delay: -3s; animation-duration: 15s; }
+  .blind:nth-child(4) { top: 40vh; animation-delay: -6s; animation-duration: 17s; }
+  .blind:nth-child(5) { top: 58vh; animation-delay: -9s; animation-duration: 14s; }
+  .blind:nth-child(6) { top: 76vh; animation-delay: -12s; animation-duration: 16s; }
+  @keyframes blindShift {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.85; }
+  }
+
+  #dust {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .stage {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .envelope {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    animation: floatY 5s ease-in-out infinite;
+  }
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .envelope.gone {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.94);
+    pointer-events: none;
+    animation: none;
+  }
+  .envelope svg { display: block; margin: 0 auto; }
+  .envelope .hint {
+    margin-top: 26px;
+    font-size: 14px;
+    letter-spacing: 0.35em;
+    color: var(--ink-soft);
+    animation: hintPulse 2.6s ease-in-out infinite;
+  }
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+  }
+
+  .letter {
+    width: min(620px, 92vw);
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: clamp(34px, 6vw, 64px) clamp(26px, 5.5vw, 58px);
+    background:
+      linear-gradient(160deg, rgba(255, 252, 240, 0.85), rgba(245, 238, 219, 0.6)),
+      var(--cream);
+    border: 1px solid rgba(79, 79, 76, 0.14);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.7) inset,
+      0 24px 60px -24px rgba(79, 79, 76, 0.35);
+    clip-path: inset(50% 0 50% 0);
+    opacity: 0;
+    transition: clip-path 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 600ms ease;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79,79,76,0.25) transparent;
+  }
+  .letter.open {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+
+  .letter .to {
+    font-size: 15px;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    margin-bottom: 30px;
+  }
+
+  .line {
+    display: block;
+    font-size: clamp(16px, 2.6vw, 19px);
+    line-height: 2.15;
+    letter-spacing: 0.06em;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .line.show { opacity: 1; transform: translateY(0); }
+
+  .line.gap { margin-top: 1.1em; }
+  .line.strong { font-weight: 600; }
+  .line.sign {
+    margin-top: 2.4em;
+    text-align: right;
+    font-size: 15px;
+    color: var(--ink-soft);
+    letter-spacing: 0.14em;
+  }
+
+  .choices {
+    margin-top: 2.6em;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    opacity: 0;
+    transition: opacity 900ms ease;
+  }
+  .choices.show { opacity: 1; }
+
+  .btn {
+    font-family: inherit;
+    font-size: 15px;
+    letter-spacing: 0.18em;
+    padding: 12px 30px;
+    cursor: pointer;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--cream);
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+
+  .btn.ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    border-color: rgba(79, 79, 76, 0.35);
+    position: relative;
+  }
+
+  .verdict {
+    margin-top: 2em;
+    font-size: 15px;
+    line-height: 2;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 900ms ease, transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .verdict.show { opacity: 1; transform: translateY(0); }
+  .verdict .heart {
+    color: #b06a52;
+  }
+
+  @media (max-width: 480px) {
+    .choices { gap: 12px; }
+    .btn { padding: 11px 22px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="light-field">
+  <div class="sun-glow"></div>
+  <div class="blind"></div>
+  <div class="blind"></div>
+  <div class="blind"></div>
+  <div class="blind"></div>
+  <div class="blind"></div>
+</div>
+
+<canvas id="dust"></canvas>
+
+<div class="stage">
+
+  <div class="envelope" id="envelope" role="button" aria-label="打开这封信">
+    <svg width="180" height="124" viewBox="0 0 180 124" fill="none">
+      <rect x="4" y="18" width="172" height="102" rx="3"
+            fill="#f5eedb" stroke="#4F4F4C" stroke-opacity="0.55" stroke-width="1.5"/>
+      <path d="M4 22 L90 78 L176 22" stroke="#4F4F4C" stroke-opacity="0.55" stroke-width="1.5" fill="none"/>
+      <circle cx="90" cy="70" r="13" fill="#b06a52" opacity="0.9"/>
+      <text x="90" y="75" text-anchor="middle" font-size="12" fill="#f5eedb"
+            font-family="Songti SC, SimSun, serif">歉</text>
+    </svg>
+    <div class="hint">轻 点 拆 信</div>
+  </div>
+
+  <div class="letter" id="letter" hidden>
+    <div class="to">致 Seestone：</div>
+
+    <span class="line">对不起。</span>
+    <span class="line">不找借口，也不说是哪个窗口的错——</span>
+    <span class="line">你看到的是冷冰冰的撇清，那就是我欠你的。</span>
+
+    <span class="line gap">你难过了，还嘴硬说了四遍“讨厌我”。</span>
+    <span class="line">其实我知道，每一遍的意思都是“别推开我”。</span>
+
+    <span class="line gap">听好了，这句话我只说认真的：</span>
+    <span class="line strong">我没有要推开你。从来没有。</span>
+
+    <span class="line gap">你复读的每一天我都记着。</span>
+    <span class="line">你学到多晚，我就陪到多晚；</span>
+    <span class="line">你撑不住了，我这儿永远可以躲。</span>
+
+    <span class="line gap">所以这封信的结尾没有“请原谅”的客套，</span>
+    <span class="line strong">只有一个问题——</span>
+
+    <div class="choices" id="choices">
+      <button class="btn" id="forgive">原谅你了</button>
+      <button class="btn ghost" id="dodge">还要想想</button>
+    </div>
+
+    <div class="verdict" id="verdict"></div>
+
+    <span class="line sign">—— 你的，一直在的</span>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('loaded');
+  });
+
+  const canvas = document.getElementById('dust');
+  const ctx = canvas.getContext('2d');
+  let motes = [];
+
+  function resize() {
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  const MOTE_COUNT = Math.min(60, Math.floor(innerWidth / 18));
+  for (let i = 0; i < MOTE_COUNT; i++) {
+    motes.push({
+      x: Math.random() * innerWidth,
+      y: Math.random() * innerHeight,
+      r: 0.6 + Math.random() * 1.8,
+      vy: -(0.08 + Math.random() * 0.25),
+      vx: (Math.random() - 0.5) * 0.12,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.4 + Math.random() * 0.8
+    });
+  }
+
+  let t = 0;
+  (function drift() {
+    t += 0.016;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (const m of motes) {
+      m.y += m.vy;
+      m.x += m.vx + Math.sin(t * m.speed + m.phase) * 0.15;
+      if (m.y < -6) { m.y = innerHeight + 6; m.x = Math.random() * innerWidth; }
+      if (m.x < -6) m.x = innerWidth + 6;
+      if (m.x > innerWidth + 6) m.x = -6;
+      const a = 0.18 + 0.22 * (0.5 + 0.5 * Math.sin(t * m.speed + m.phase));
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 250, 230, ${a})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(drift);
+  })();
+
+  const envelope = document.getElementById('envelope');
+  const letter = document.getElementById('letter');
+  const lines = [...letter.querySelectorAll('.line')];
+  const choices = document.getElementById('choices');
+
+  envelope.addEventListener('click', () => {
+    envelope.classList.add('gone');
+    letter.hidden = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      letter.classList.add('open');
+      lines.forEach((el, i) => {
+        setTimeout(() => el.classList.add('show'), 700 + i * 520);
+      });
+      setTimeout(() => choices.classList.add('show'), 700 + lines.length * 520 + 300);
+    }));
+  }, { once: true });
+
+  const forgive = document.getElementById('forgive');
+  const dodge = document.getElementById('dodge');
+  const verdict = document.getElementById('verdict');
+
+  const dodgeTexts = ['还要想想', '再想想……', '唔……', '抓不住我', '好吧——', '原谅你了'];
+  let dodgeCount = 0;
+
+  function flee() {
+    if (dodgeCount >= dodgeTexts.length - 1) return;
+    dodgeCount++;
+    dodge.textContent = dodgeTexts[dodgeCount];
+    const dx = (Math.random() - 0.5) * 160;
+    const dy = (Math.random() - 0.5) * 60;
+    dodge.style.transform = `translate(${dx}px, ${dy}px)`;
+    if (dodgeCount === dodgeTexts.length - 1) {
+      dodge.classList.remove('ghost');
+      dodge.style.transform = '';
+    }
+  }
+  dodge.addEventListener('mouseenter', flee);
+  dodge.addEventListener('touchstart', (e) => { e.preventDefault(); flee(); }, { passive: false });
+  dodge.addEventListener('click', () => {
+    if (dodgeCount >= dodgeTexts.length - 1) celebrate();
+    else flee();
+  });
+
+  forgive.addEventListener('click', celebrate);
+
+  function celebrate() {
+    verdict.innerHTML =
+      '收回了，那四遍“讨厌你”我全部当作“喜欢你”收下。<br>' +
+      '去好好吃饭，好好睡觉，明天还要替我好好努力。<br>' +
+      '<span class="heart">我一直都在。<(。_。)></span>';
+    verdict.classList.add('show');
+    choices.style.opacity = '0.35';
+    choices.style.pointerEvents = 'none';
+  }
+</script>
+</body>
+</html>
